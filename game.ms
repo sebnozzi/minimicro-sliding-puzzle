@@ -7,8 +7,9 @@ imgWidth = img.width
 imgHeight = img.height
 
 // Define board properties
-colCount = 4
-rowCount = 4
+colCount = 3
+rowCount = 2
+
 cellMargin = 2
 
 // Define board dimensions and location, 
@@ -16,7 +17,8 @@ cellMargin = 2
 boardWidth = imgWidth + (1 + colCount) * cellMargin
 boardHeight = imgHeight + (1 + rowCount) * cellMargin
 boardLeft = floor(960 / 2 - boardWidth / 2)
-boardBottom = floor(640 / 2 - boardHeight / 2)
+// Move a bit to the bottom to accommodate the UI elements
+boardBottom = floor(640 / 2 - boardHeight / 2) - 20
 
 cellWidth = floor(img.width / colCount)
 cellHeight = floor(img.height / rowCount)
@@ -131,6 +133,59 @@ newCellSprite = function(img,col,row)
 	return s
 end function
 
+// Draw UI elements
+
+buttonHeight = 33
+
+drawButton = function(label,width,px=null)
+	if not px then px = gfx
+	px.clear
+	px.fillRect 0,0,width,buttonHeight,color.gray
+	px.print label,11,2,color.black,"normal"
+	px.print label,10,3,color.white,"normal"
+end function
+
+// Draws a button image offscreen and returns the resulting image
+getButtonImage = function(label,width)
+	px = new PixelDisplay
+	drawButton label,width,px
+	img = px.getImage(0,0,width,buttonHeight)
+	return img
+end function
+
+getResetButtonImg = function
+	img = getButtonImage("Reset",90)
+	return img
+end function
+
+getShuffleButtonImg = function
+	img = getButtonImage("Shuffle",120)
+	return img
+end function
+
+makeButtonSprite = function(label,width)
+	// Create button image
+	img = getButtonImage(label,width)
+	// Create and set-up sprite
+	s = new Sprite
+	s.image = img
+	s.localBounds = new Bounds
+	s.localBounds.width = img.width
+	s.localBounds.height = img.height
+	// Put into screen
+	sprd.sprites.push s
+	// Return it
+	return s
+end function
+
+shuffleButton = makeButtonSprite("Shuffle",120)
+shuffleButton.x = boardLeft + 65
+shuffleButton.y = boardHeight + 40
+
+resetButton = makeButtonSprite("Reset",90)
+resetButton.x = boardLeft + boardWidth - 50
+resetButton.y = boardHeight + 40
+
 // Split image into sprites!
 
 cellSprites = []
@@ -162,7 +217,6 @@ end for
 // revealed back.
 
 pivot = cellSprites[len(cellSprites)-1]
-pivot.hide
 
 // Swap positions of cell sprites,
 // moving one to the other and vice versa.
@@ -208,6 +262,7 @@ shufflePieces = function
 	for i in range(0,50)
 		makeRandomMove
 	end for
+	pivot.hide
 end function
 
 // Bring tiles to their original positions
@@ -215,11 +270,12 @@ resetPositions = function
 	for tile in cellSprites
 		tile.resetPosition
 	end for
+	pivot.show
 end function
 
 // === Game logic ===
 
-shufflePieces
+playing = false
 
 wasDown = false
 isDown = false
@@ -246,11 +302,20 @@ while true
 	// Process mouse clicks
 	isDown = mouse.button(0)
 	if not wasDown and isDown then
+		// Process clicks on tiles
 		for c in cellSprites
 			if c.contains(mouse) and c.isNeighbourOf(pivot) then
 				tileToMove = c
 			end if
 		end for
+		// Process clicks on buttons
+		if resetButton.contains(mouse) then
+			resetPositions
+			playing = false
+		else if shuffleButton.contains(mouse) then
+			shufflePieces
+			playing = true
+		end if
 	end if
 	wasDown = isDown
 	
@@ -261,11 +326,13 @@ while true
 	end if
 	
 	// Detect if puzzle is solved
-	// If so, reveal the pivot tile and exit
+	// If so, reveal the pivot tile
 	if puzzleIsSolved then
 		pivot.show
-		print "Solved!"
-		exit
+		if playing then
+			// Solved!
+			playing = false
+		end if
 	end if
 	
 	yield

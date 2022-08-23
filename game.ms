@@ -1,15 +1,19 @@
 
+// Define some global properties
 sprd = display(4)
 
 img = file.loadImage("game-images/musicians.jpg")
 imgWidth = img.width
 imgHeight = img.height
 
-// Define board properties
-colCount = 3
-rowCount = 2
-
 cellMargin = 2
+
+boardSizes = [
+  {"cols": 3, "rows": 2},
+  {"cols": 4, "rows": 2},
+  {"cols": 3, "rows": 3},
+  {"cols": 4, "rows": 3},
+  {"cols": 4, "rows": 4}]
 
 // Define Position class
 Position = {}
@@ -36,7 +40,7 @@ Position.newWithAddedOffset = function(offsetCol,offsetRow)
 	return newPosition(nCol,nRow)
 end function
 
-
+// Factory function for Position(s)
 newPosition = function(col,row)
 	pos = new Position
 	pos.col = col
@@ -45,6 +49,7 @@ newPosition = function(col,row)
 end function
 
 // Define CellSprite class
+
 CellSprite = new Sprite
 CellSprite.pos = new Position
 CellSprite.initialPos = new Position
@@ -175,18 +180,33 @@ UI.init = function(board)
 	self.resetButton = makeButtonSprite("Reset",90)
 	self.resetButton.x = board.boardLeft + board.boardWidth - 50
 	
-	self.lessButton = makeButtonSprite("<",40)
-	self.lessButton.x = board.boardLeft + 300
+	self.decreaseButton = makeButtonSprite("<",40)
+	self.decreaseButton.x = board.boardLeft + 300
 	
-	self.moreButton = makeButtonSprite(">",40)
-	self.moreButton.x = board.boardLeft + 500
+	self.increaseButton = makeButtonSprite(">",40)
+	self.increaseButton.x = board.boardLeft + 500
+	
+	cols = board.colCount
+	rows = board.rowCount
+	self.drawSizeLabel(cols,rows)
+end function
+
+UI.drawSizeLabel = function(cols,rows)
+	// Remove existing text
+	gfx.fillRect 390,592,200,100,color.black
+	// Draw text
+	label = "Size: " + cols + "x" + rows
+	gfx.print label,390,592,color.white
 end function
 
 // Define board
 
 board = {}
+board.currentSizeIdx = 0
 // Initialize board
-board.init = function(colCount=3,rowCount=2)
+board.init = function
+	colCount = boardSizes[self.currentSizeIdx].cols
+	rowCount = boardSizes[self.currentSizeIdx].rows
 	self.initGeometry(colCount,rowCount)
 	self.initTiles
 end function
@@ -293,6 +313,39 @@ board.resetPositions = function
 	self.pivot.show
 end function
 
+board.destroySprites = function
+	for cs in self.cellSprites
+		idx = sprd.sprites.indexOf(cs)
+		sprd.sprites.remove idx
+	end for	
+end function
+
+// Re-init the board with an increased size, if possible 
+board.increaseSize = function
+	if board.currentSizeIdx < len(boardSizes)-1 then
+		board.currentSizeIdx = board.currentSizeIdx + 1
+		board.destroySprites
+		board.init
+		board.resetPositions
+		board.drawSizeLabel
+	end if
+end function
+
+// Re-init the board with an decreased size, if possible 
+board.decreaseSize = function
+	if board.currentSizeIdx > 0 then
+		board.currentSizeIdx = board.currentSizeIdx - 1
+		board.destroySprites
+		board.init
+		board.resetPositions
+		board.drawSizeLabel
+	end if
+end function
+
+board.drawSizeLabel = function
+	UI.drawSizeLabel(self.colCount,self.rowCount)	
+end function
+
 // === Game logic ===
 
 playing = false
@@ -340,6 +393,10 @@ while true
 		else if UI.shuffleButton.contains(mouse) then
 			board.shufflePieces
 			playing = true
+		else if UI.decreaseButton.contains(mouse) then
+			board.decreaseSize
+		else if UI.increaseButton.contains(mouse) then
+			board.increaseSize
 		end if
 	end if
 	wasDown = isDown

@@ -2,7 +2,7 @@
 
 [Sliding Puzzle](http://en.wikipedia.org/wiki/Sliding_puzzle) for the Mini Micro [**Mini Micro**](https://miniscript.org/).
 
-![image](readme-images/screenshot.png)
+![image](readme-images/cropped_screenshot.png)
 
 ## Credits
 

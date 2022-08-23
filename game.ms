@@ -1,5 +1,4 @@
 
-clear
 sprd = display(4)
 
 img = file.loadImage("game-images/musicians.jpg")
@@ -12,31 +11,20 @@ rowCount = 2
 
 cellMargin = 2
 
-// Define board dimensions and location, 
-// taking into account the pixels needed for cell marings
-boardWidth = imgWidth + (1 + colCount) * cellMargin
-boardHeight = imgHeight + (1 + rowCount) * cellMargin
-boardLeft = floor(960 / 2 - boardWidth / 2)
-// Move a bit to the bottom to accommodate the UI elements
-boardBottom = floor(640 / 2 - boardHeight / 2) - 20
-
-cellWidth = floor(img.width / colCount)
-cellHeight = floor(img.height / rowCount)
-
 // Define Position class
 Position = {}
 Position.col = 0
 Position.row = 0
 // Return screen coordinate X
 Position.x = function
-	x = boardLeft + cellWidth * (self.col-1) + cellWidth / 2
+	x = board.boardLeft + board.cellWidth * (self.col-1) + board.cellWidth / 2
 	// Correct for cell margins
 	x = x + (self.col * cellMargin)
 	return x
 end function
 // Return screen coordinate Y
 Position.y = function
-	y = boardBottom + cellHeight * (self.row-1) + cellHeight / 2
+	y = board.boardBottom + board.cellHeight * (self.row-1) + board.cellHeight / 2
 	// Correct for cell margins
 	y = y + (self.row * cellMargin)
 	return y
@@ -98,7 +86,7 @@ CellSprite.neighbourBelow = function
 end function
 CellSprite.neighbourAtOffset = function(deltaCol,deltaRow)
 	nPos = self.pos.newWithAddedOffset(deltaCol,deltaRow)
-	for cellSprite in cellSprites
+	for cellSprite in board.cellSprites
 		if cellSprite.pos == nPos then
 			return cellSprite
 		end if
@@ -133,7 +121,7 @@ newCellSprite = function(img,col,row)
 	return s
 end function
 
-// Draw UI elements
+// Define UI elements
 
 buttonHeight = 33
 
@@ -174,49 +162,81 @@ makeButtonSprite = function(label,width)
 	s.localBounds.height = img.height
 	// Put into screen
 	sprd.sprites.push s
+	s.y = board.boardHeight + 40
 	// Return it
 	return s
 end function
 
-shuffleButton = makeButtonSprite("Shuffle",120)
-shuffleButton.x = boardLeft + 65
-shuffleButton.y = boardHeight + 40
+UI = {}
+UI.init = function(board)
+	self.shuffleButton = makeButtonSprite("Shuffle",120)
+	self.shuffleButton.x = board.boardLeft + 65
+	
+	self.resetButton = makeButtonSprite("Reset",90)
+	self.resetButton.x = board.boardLeft + board.boardWidth - 50
+	
+	self.lessButton = makeButtonSprite("<",40)
+	self.lessButton.x = board.boardLeft + 300
+	
+	self.moreButton = makeButtonSprite(">",40)
+	self.moreButton.x = board.boardLeft + 500
+end function
 
-resetButton = makeButtonSprite("Reset",90)
-resetButton.x = boardLeft + boardWidth - 50
-resetButton.y = boardHeight + 40
+// Define board
 
-// Split image into sprites!
-
-cellSprites = []
-
-for rowIdx in range(rowCount-1,0)
-	for colIdx in range(0,colCount-1)
-		// Get image part
-		x = cellWidth*colIdx
-		y = cellHeight*rowIdx
-		imagePart = img.getImage(x,y,cellWidth,cellHeight)
-		// Create cell sprite
-		cellSprite = newCellSprite(imagePart,colIdx+1,rowIdx+1)
-		cellSprites.push cellSprite
+board = {}
+// Initialize board
+board.init = function(colCount=3,rowCount=2)
+	self.initGeometry(colCount,rowCount)
+	self.initTiles
+end function
+// Initialize geometry aspects of the board
+// For example: width / height, position, tile size
+board.initGeometry = function(colCount,rowCount)
+	self.colCount = colCount
+	self.rowCount = rowCount
+	
+	// Define board dimensions and location, 
+	// taking into account the pixels needed for cell marings
+	self.boardWidth = imgWidth + (1 + self.colCount) * cellMargin
+	self.boardHeight = imgHeight + (1 + self.rowCount) * cellMargin
+	self.boardLeft = floor(960 / 2 - self.boardWidth / 2)
+	// Move a bit to the bottom to accommodate the UI elements
+	self.boardBottom = floor(640 / 2 - self.boardHeight / 2) - 20
+	
+	self.cellWidth = floor(img.width / self.colCount)
+	self.cellHeight = floor(img.height / self.rowCount)		
+end function
+board.initTiles = function
+	self.cellSprites = []
+	
+	// Split image into sprites
+	for rowIdx in range(self.rowCount-1,0)
+		for colIdx in range(0,self.colCount-1)
+			// Get image part
+			x = self.cellWidth*colIdx
+			y = self.cellHeight*rowIdx
+			imagePart = img.getImage(x,y,self.cellWidth,self.cellHeight)
+			// Create cell sprite
+			cellSprite = newCellSprite(imagePart,colIdx+1,rowIdx+1)
+			self.cellSprites.push cellSprite
+		end for
 	end for
-end for
-
-// Place the (cell) sprites on the screen
-
-for cellSprite in cellSprites
-	sprd.sprites.push cellSprite
-	cellSprite.updateCoordinates
-end for
-
-// Make the bottom-right sprite the "pivot" sprite
-// It will be "hidden", appearing as the "hole" in which
-// other sprites move in - in reality swapping places
-// with it.
-// At the end, when the puzzle is solved it will be 
-// revealed back.
-
-pivot = cellSprites[len(cellSprites)-1]
+	
+	// Place them on screen
+	for cellSprite in self.cellSprites
+		sprd.sprites.push cellSprite
+		cellSprite.updateCoordinates
+	end for
+	
+	// Make the bottom-right sprite the "pivot" sprite
+	// It will be "hidden", appearing as the "hole" in which
+	// other sprites move in - in reality swapping places
+	// with it.
+	// At the end, when the puzzle is solved it will be 
+	// revealed back.
+	self.pivot = self.cellSprites[len(self.cellSprites)-1]
+end function
 
 // Swap positions of cell sprites,
 // moving one to the other and vice versa.
@@ -233,8 +253,8 @@ swapPositions = function(a,b)
 end function
 
 // Returns true if all pieces are in their initial positions
-puzzleIsSolved = function
-	for cs in cellSprites
+board.puzzleIsSolved = function
+	for cs in self.cellSprites
 		if not cs.isAtInitialPosition then
 			return false
 		end if
@@ -243,34 +263,34 @@ puzzleIsSolved = function
 end function
 
 // Shuffle pieces by repeatedly applying a random move
-makeRandomMove = function
+board.makeRandomMove = function
 	tileToMove = null
 	randomOp = floor(rnd * 4)
 	if randomOp == 0 then
-		tileToMove = pivot.neighbourBelow
+		tileToMove = self.pivot.neighbourBelow
 	else if randomOp == 1 then
-		tileToMove = pivot.neighbourAbove
+		tileToMove = self.pivot.neighbourAbove
 	else if randomOp == 2 then
-		tileToMove = pivot.neighbourRight
+		tileToMove = self.pivot.neighbourRight
 	else if randomOp == 3 then
-		tileToMove = pivot.neighbourLeft
+		tileToMove = self.pivot.neighbourLeft
 	end if	
-	swapPositions(tileToMove,pivot)
+	swapPositions(tileToMove,self.pivot)
 end function
 
-shufflePieces = function
+board.shufflePieces = function
 	for i in range(0,50)
-		makeRandomMove
+		self.makeRandomMove
 	end for
-	pivot.hide
+	self.pivot.hide
 end function
 
 // Bring tiles to their original positions
-resetPositions = function
-	for tile in cellSprites
+board.resetPositions = function
+	for tile in self.cellSprites
 		tile.resetPosition
 	end for
-	pivot.show
+	self.pivot.show
 end function
 
 // === Game logic ===
@@ -280,6 +300,11 @@ playing = false
 wasDown = false
 isDown = false
 
+clear
+
+board.init
+UI.init(board)
+
 while true
 	tileToMove = null
 	
@@ -287,13 +312,13 @@ while true
 	if key.available then
 		k = key.get
 		if key.pressed("up") then
-			tileToMove = pivot.neighbourBelow
+			tileToMove = board.pivot.neighbourBelow
 		else if key.pressed("down") then
-			tileToMove = pivot.neighbourAbove
+			tileToMove = board.pivot.neighbourAbove
 		else if key.pressed("left") then
-			tileToMove = pivot.neighbourRight
+			tileToMove = board.pivot.neighbourRight
 		else if key.pressed("right") then
-			tileToMove = pivot.neighbourLeft
+			tileToMove = board.pivot.neighbourLeft
 		else if key.pressed("q") then
 			exit
 		end if		
@@ -303,17 +328,17 @@ while true
 	isDown = mouse.button(0)
 	if not wasDown and isDown then
 		// Process clicks on tiles
-		for c in cellSprites
-			if c.contains(mouse) and c.isNeighbourOf(pivot) then
+		for c in board.cellSprites
+			if c.contains(mouse) and c.isNeighbourOf(board.pivot) then
 				tileToMove = c
 			end if
 		end for
 		// Process clicks on buttons
-		if resetButton.contains(mouse) then
-			resetPositions
+		if UI.resetButton.contains(mouse) then
+			board.resetPositions
 			playing = false
-		else if shuffleButton.contains(mouse) then
-			shufflePieces
+		else if UI.shuffleButton.contains(mouse) then
+			board.shufflePieces
 			playing = true
 		end if
 	end if
@@ -322,13 +347,13 @@ while true
 	// If there is a tile to move, swap positions with 
 	// the pivot
 	if tileToMove then
-		swapPositions tileToMove,pivot 
+		swapPositions tileToMove,board.pivot 
 	end if
 	
 	// Detect if puzzle is solved
 	// If so, reveal the pivot tile
-	if puzzleIsSolved then
-		pivot.show
+	if board.puzzleIsSolved then
+		board.pivot.show
 		if playing then
 			// Solved!
 			playing = false

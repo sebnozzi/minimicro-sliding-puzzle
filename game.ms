@@ -6,8 +6,10 @@ img = file.loadImage("game-images/musicians.jpg")
 imgWidth = img.width
 imgHeight = img.height
 
+// Margin between cells / tiles - in pixels
 cellMargin = 2
 
+// All possible board sizes
 boardSizes = [
   {"cols": 3, "rows": 2},
   {"cols": 4, "rows": 2},
@@ -69,7 +71,7 @@ CellSprite.show = function
 end function
 // Hide sprite
 CellSprite.hide = function
-	self.tint = color.black
+	self.tint = color.rgba(0,0,0,0)
 end function
 // Update sprite's coordinates based on the model col / row
 CellSprite.updateCoordinates = function
@@ -130,6 +132,18 @@ end function
 
 buttonHeight = 33
 
+ButtonSprite = new Sprite
+ButtonSprite.showEnabled = function
+	if self.contains(mouse) and mouse.button(0) then
+		self.tint = color.yellow
+	else
+		self.tint = color.white
+	end if
+end function
+ButtonSprite.showDisabled = function
+	self.tint = color.rgb(120,120,120)
+end function
+
 drawButton = function(label,width,px=null)
 	if not px then px = gfx
 	px.clear
@@ -160,7 +174,7 @@ makeButtonSprite = function(label,width)
 	// Create button image
 	img = getButtonImage(label,width)
 	// Create and set-up sprite
-	s = new Sprite
+	s = new ButtonSprite
 	s.image = img
 	s.localBounds = new Bounds
 	s.localBounds.width = img.width
@@ -197,6 +211,30 @@ UI.drawSizeLabel = function(cols,rows)
 	// Draw text
 	label = "Size: " + cols + "x" + rows
 	gfx.print label,390,592,color.white
+end function
+
+UI.updateButtons = function
+	// Disable initially
+	self.increaseButton.showDisabled
+	self.decreaseButton.showDisabled
+	self.resetButton.showDisabled
+	
+	// Enable them if suitable
+	
+	// We can still decrease
+	if board.currentSizeIdx < len(boardSizes)-1 then
+		self.increaseButton.showEnabled
+	end if
+	// We can still increase
+	if board.currentSizeIdx > 0 then
+		self.decreaseButton.showEnabled
+	end if
+	// Puzzle is not solved - reset makes sense
+	if not board.puzzleIsSolved then
+		self.resetButton.showEnabled
+	end if
+	
+	self.shuffleButton.showEnabled
 end function
 
 // Define board
@@ -260,7 +298,7 @@ end function
 
 // Swap positions of cell sprites,
 // moving one to the other and vice versa.
-swapPositions = function(a,b)
+swapPositions = function(a,b,animate=false)
 	if a == null or b == null then return
 	previousA = a.pos
 	// Set a's position to b's
@@ -404,7 +442,7 @@ while true
 	// If there is a tile to move, swap positions with 
 	// the pivot
 	if tileToMove then
-		swapPositions tileToMove,board.pivot 
+		swapPositions tileToMove,board.pivot,true 
 	end if
 	
 	// Detect if puzzle is solved
@@ -417,5 +455,6 @@ while true
 		end if
 	end if
 	
+	UI.updateButtons
 	yield
 end while

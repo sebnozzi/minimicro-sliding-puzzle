@@ -3,6 +3,7 @@
 sprd = display(4)
 
 img = file.loadImage("game-images/musicians.jpg")
+//img = file.loadImage("game-images/chinchilla.jpg")
 imgWidth = img.width
 imgHeight = img.height
 
@@ -181,7 +182,7 @@ makeButtonSprite = function(label,width)
 	s.localBounds.height = img.height
 	// Put into screen
 	sprd.sprites.push s
-	s.y = board.boardHeight + 40
+	s.y = board.boardTop + 25
 	// Return it
 	return s
 end function
@@ -206,11 +207,13 @@ UI.init = function(board)
 end function
 
 UI.drawSizeLabel = function(cols,rows)
+	x = board.boardLeft + 335
+	y = board.boardTop + 12
 	// Remove existing text
-	gfx.fillRect 390,592,200,100,color.black
+	gfx.fillRect x,y,200,100,color.black
 	// Draw text
 	label = "Size: " + cols + "x" + rows
-	gfx.print label,390,592,color.white
+	gfx.print label,x,y,color.white
 end function
 
 UI.updateButtons = function
@@ -261,6 +264,7 @@ board.initGeometry = function(colCount,rowCount)
 	self.boardLeft = floor(960 / 2 - self.boardWidth / 2)
 	// Move a bit to the bottom to accommodate the UI elements
 	self.boardBottom = floor(640 / 2 - self.boardHeight / 2) - 20
+	self.boardTop = self.boardBottom + self.boardHeight
 	
 	self.cellWidth = floor(img.width / self.colCount)
 	self.cellHeight = floor(img.height / self.rowCount)		

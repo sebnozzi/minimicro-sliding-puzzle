@@ -105,10 +105,10 @@ end function
 // True if other is neighbour of self
 CellSprite.isNeighbourOf = function(other)
 	neighbours = [
-	  self.neighbourAbove,
-	  self.neighbourBelow,
-	  self.neighbourLeft,
-	  self.neighbourRight ]
+	self.neighbourAbove,
+	self.neighbourBelow,
+	self.neighbourLeft,
+	self.neighbourRight ]
 	for n in neighbours 
 		if n == other then return true
 	end for
@@ -296,10 +296,66 @@ board.initTiles = function
 	self.pivot = self.cellSprites[len(self.cellSprites)-1]
 end function
 
+// Takes a sprite and moves it from one position to
+// another in a given amount of time
+Animation = {}
+Animation.sprite = null
+Animation.durationSecs = 1
+Animation.startX = 0
+Animation.startY = 0
+Animation.endX = 0
+Animation.endY = 0
+Animation.startTime = null
+Animation.endTime = null
+Animation.init = function(sprite, endX, endY, durationSecs=1)
+	self.sprite = sprite
+	self.startX = sprite.x
+	self.startY = sprite.y
+	self.endX = endX
+	self.endY = endY
+	self.deltaX = endX - self.startX
+	self.deltaY = endY - self.startY
+	self.startTime = time
+	self.durationSecs = durationSecs
+	self.endTime = self.startTime + durationSecs
+end function
+Animation.animate = function
+	if self.inProgress then
+		elapsedTime = time - self.startTime
+		newX = self.startX + self.deltaX * elapsedTime / self.durationSecs
+		newY = self.startY + self.deltaY * elapsedTime / self.durationSecs
+		self.sprite.x = newX
+		self.sprite.y = newY
+	else
+		self.sprite.x = self.endX
+		self.sprite.y = self.endY
+	end if
+end function
+Animation.inProgress = function
+	return time < self.endTime
+end function
+
 // Swap positions of cell sprites,
 // moving one to the other and vice versa.
 swapPositions = function(a,b,animate=false)
 	if a == null or b == null then return
+	
+	if animate then
+		if a == board.pivot then
+			piece = b
+			pivot = a
+		else 
+			piece = a
+			pivot = b
+		end if 
+		animation = new Animation
+		animation.init piece, pivot.x, pivot.y, 0.2
+		while animation.inProgress
+			animation.animate
+			yield
+		end while
+	end if
+	
 	previousA = a.pos
 	// Set a's position to b's
 	a.pos = b.pos

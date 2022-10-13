@@ -319,7 +319,7 @@ Animation.init = function(sprite, endX, endY, durationSecs=1)
 	self.durationSecs = durationSecs
 	self.endTime = self.startTime + durationSecs
 end function
-Animation.animate = function
+Animation.update = function
 	if self.inProgress then
 		elapsedTime = time - self.startTime
 		newX = self.startX + self.deltaX * elapsedTime / self.durationSecs
@@ -351,7 +351,7 @@ swapPositions = function(a,b,animate=false)
 		animation = new Animation
 		animation.init piece, pivot.x, pivot.y, 0.2
 		while animation.inProgress
-			animation.animate
+			animation.update
 			yield
 		end while
 	end if

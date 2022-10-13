@@ -105,10 +105,10 @@ end function
 // True if other is neighbour of self
 CellSprite.isNeighbourOf = function(other)
 	neighbours = [
-	self.neighbourAbove,
-	self.neighbourBelow,
-	self.neighbourLeft,
-	self.neighbourRight ]
+	  self.neighbourAbove,
+	  self.neighbourBelow,
+	  self.neighbourLeft,
+	  self.neighbourRight ]
 	for n in neighbours 
 		if n == other then return true
 	end for

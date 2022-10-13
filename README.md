@@ -31,7 +31,7 @@ The chinchilla picture is included because it's the official "mascot" of the Min
 
 It can be activated by modifying the source-code and pointing to it.
 
-As stated in the wiki, the "chinchilla was selected for the mascot" because, like MiniScript:
+As stated in the [wiki](https://miniscript.org/wiki/Minnie), the "chinchilla was selected for the mascot" because, like MiniScript:
 
 * they're small and adorable;
 * they're well-behaved;

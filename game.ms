@@ -67,7 +67,16 @@ CellSprite.resetPosition = function
 	self.updateCoordinates
 end function
 // Show sprite
-CellSprite.show = function
+CellSprite.show = function(animate=false)
+	if animate then
+		percent = 0
+		while percent < 100
+			factor = percent / 100
+			self.tint = color.lerp(color.black, color.white, factor)
+			percent = percent + 5
+			yield
+		end while
+	end if
 	self.tint = color.white
 end function
 // Hide sprite
@@ -508,9 +517,9 @@ while true
 	// Detect if puzzle is solved
 	// If so, reveal the pivot tile
 	if board.puzzleIsSolved then
-		board.pivot.show
 		if playing then
 			// Solved!
+			board.pivot.show true
 			playing = false
 		end if
 	end if

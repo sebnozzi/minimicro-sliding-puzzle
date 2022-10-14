@@ -2,13 +2,15 @@
 // Define some global properties
 sprd = display(4)
 
-img = file.loadImage("game-images/musicians.jpg")
-//img = file.loadImage("game-images/chinchilla.jpg")
 imgWidth = img.width
 imgHeight = img.height
 
 // Margin between cells / tiles - in pixels
 cellMargin = 2
+
+buttonHeight = 33
+
+tileAnimationDuration = 0.1
 
 // All possible board sizes
 boardSizes = [
@@ -18,7 +20,8 @@ boardSizes = [
   {"cols": 4, "rows": 3},
   {"cols": 4, "rows": 4}]
 
-// Define Position class
+// === Position ===
+
 Position = {}
 Position.col = 0
 Position.row = 0
@@ -51,7 +54,7 @@ newPosition = function(col,row)
 	return pos
 end function
 
-// Define CellSprite class
+// === CellSprite ===
 
 CellSprite = new Sprite
 CellSprite.pos = new Position
@@ -115,10 +118,10 @@ end function
 // True if other is neighbour of self
 CellSprite.isNeighbourOf = function(other)
 	neighbours = [
-	  self.neighbourAbove,
-	  self.neighbourBelow,
-	  self.neighbourLeft,
-	  self.neighbourRight ]
+	self.neighbourAbove,
+	self.neighbourBelow,
+	self.neighbourLeft,
+	self.neighbourRight ]
 	for n in neighbours 
 		if n == other then return true
 	end for
@@ -138,9 +141,7 @@ newCellSprite = function(img,col,row)
 	return s
 end function
 
-// Define UI elements
-
-buttonHeight = 33
+// === UI ===
 
 ButtonSprite = new Sprite
 ButtonSprite.showEnabled = function
@@ -249,7 +250,7 @@ UI.updateButtons = function
 	self.shuffleButton.showEnabled
 end function
 
-// Define board
+// === Board ===
 
 board = {}
 board.currentSizeIdx = 0
@@ -309,6 +310,8 @@ board.initTiles = function
 	self.pivot = self.cellSprites[len(self.cellSprites)-1]
 end function
 
+// === Animation ===
+
 // Takes a sprite and moves it from one position to
 // another in a given amount of time
 Animation = {}
@@ -346,37 +349,6 @@ Animation.update = function
 end function
 Animation.inProgress = function
 	return time < self.endTime
-end function
-
-// Swap positions of cell sprites,
-// moving one to the other and vice versa.
-swapPositions = function(a,b,animate=false)
-	if a == null or b == null then return
-	
-	if animate then
-		if a == board.pivot then
-			piece = b
-			pivot = a
-		else 
-			piece = a
-			pivot = b
-		end if 
-		animation = new Animation
-		animation.init piece, pivot.x, pivot.y, 0.2
-		while animation.inProgress
-			animation.update
-			yield
-		end while
-	end if
-	
-	previousA = a.pos
-	// Set a's position to b's
-	a.pos = b.pos
-	// Set b's to a's
-	b.pos = previousA
-	// Update screen coordinates of both
-	a.updateCoordinates
-	b.updateCoordinates
 end function
 
 // Returns true if all pieces are in their initial positions
@@ -451,6 +423,39 @@ end function
 
 board.drawSizeLabel = function
 	UI.drawSizeLabel(self.colCount,self.rowCount)	
+end function
+
+// === Convenience functions ===
+
+// Swap positions of cell sprites,
+// moving one to the other and vice versa.
+swapPositions = function(a,b,animate=false)
+	if a == null or b == null then return
+	
+	if animate then
+		if a == board.pivot then
+			piece = b
+			pivot = a
+		else 
+			piece = a
+			pivot = b
+		end if 
+		animation = new Animation
+		animation.init piece, pivot.x, pivot.y, tileAnimationDuration
+		while animation.inProgress
+			animation.update
+			yield
+		end while
+	end if
+	
+	previousA = a.pos
+	// Set a's position to b's
+	a.pos = b.pos
+	// Set b's to a's
+	b.pos = previousA
+	// Update screen coordinates of both
+	a.updateCoordinates
+	b.updateCoordinates
 end function
 
 // === Game logic ===

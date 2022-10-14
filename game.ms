@@ -2,6 +2,8 @@
 // Define some global properties
 sprd = display(4)
 
+img = file.loadImage("game-images/musicians.jpg")
+//img = file.loadImage("game-images/chinchilla.jpg")
 imgWidth = img.width
 imgHeight = img.height
 
@@ -11,6 +13,7 @@ cellMargin = 2
 buttonHeight = 33
 
 tileAnimationDuration = 0.1
+pivotShowDuration = 0.5
 
 // All possible board sizes
 boardSizes = [
@@ -72,13 +75,14 @@ end function
 // Show sprite
 CellSprite.show = function(animate=false)
 	if animate then
-		percent = 0
-		while percent < 100
-			factor = percent / 100
-			self.tint = color.lerp(color.black, color.white, factor)
-			percent = percent + 5
-			yield
-		end while
+		animation = new Animation
+		animation.init 0, 100, pivotShowDuration
+		piece = self
+		animation.onValueChange = function(newValue)
+			t = newValue / 100
+			piece.tint = color.lerp(color.black, color.white, t)
+		end function
+		animation.runUntilDone
 	end if
 	self.tint = color.white
 end function
@@ -312,43 +316,80 @@ end function
 
 // === Animation ===
 
-// Takes a sprite and moves it from one position to
-// another in a given amount of time
+// Changes a value periodically in a given time-frame.
+// Can be used to animate position-changes, color-changes, etc. 
 Animation = {}
-Animation.sprite = null
 Animation.durationSecs = 1
-Animation.startX = 0
-Animation.startY = 0
-Animation.endX = 0
-Animation.endY = 0
+Animation.startValue = 0
+Animation.endValue = 0
 Animation.startTime = null
 Animation.endTime = null
-Animation.init = function(sprite, endX, endY, durationSecs=1)
-	self.sprite = sprite
-	self.startX = sprite.x
-	self.startY = sprite.y
-	self.endX = endX
-	self.endY = endY
-	self.deltaX = endX - self.startX
-	self.deltaY = endY - self.startY
-	self.startTime = time
+Animation.init = function(startValue, endValue, durationSecs)
+	self.startValue = startValue
+	self.endValue = endValue
+	self.deltaValue = endValue - startValue
 	self.durationSecs = durationSecs
-	self.endTime = self.startTime + durationSecs
+	self.startTimer
+end function
+Animation.startTimer = function
+	self.startTime = time
+	self.endTime = self.startTime + self.durationSecs
 end function
 Animation.update = function
 	if self.inProgress then
 		elapsedTime = time - self.startTime
-		newX = self.startX + self.deltaX * elapsedTime / self.durationSecs
-		newY = self.startY + self.deltaY * elapsedTime / self.durationSecs
-		self.sprite.x = newX
-		self.sprite.y = newY
+		newValue = self.startValue + self.deltaValue * elapsedTime / self.durationSecs
+		self.onValueChange(newValue)
 	else
-		self.sprite.x = self.endX
-		self.sprite.y = self.endY
+		self.onValueChange(self.endValue)
 	end if
+end function
+Animation.onValueChange = function(newValue)
+	// Override
 end function
 Animation.inProgress = function
 	return time < self.endTime
+end function
+Animation.runUntilDone = function
+	self.startTimer
+	while self.inProgress
+		self.update
+		yield
+	end while
+end function
+
+MovementAnimation = {}
+MovementAnimation.animationX = null
+MovementAnimation.animationY = null
+MovementAnimation.init = function(sprite, endX, endY, durationSecs)
+	self.animationX = new Animation
+	self.animationY = new Animation
+	self.animationX.init(sprite.x, endX, durationSecs)
+	self.animationY.init(sprite.y, endY, durationSecs)
+	self.animationX.onValueChange = function(newX)
+		sprite.x = newX
+	end function
+	self.animationY.onValueChange = function(newY)
+		sprite.y = newY
+	end function
+end function
+MovementAnimation.update = function
+	self.animationX.update
+	self.animationY.update
+end function
+MovementAnimation.startTimer = function
+	self.animationX.startTimer
+	self.animationY.startTimer
+end function
+MovementAnimation.inProgress = function
+	return self.animationX.inProgress or self.animationY.inProgress
+end function
+MovementAnimation.runUntilDone = function
+	self.startTimer
+	while self.inProgress
+		self.update
+		yield
+	end while
 end function
 
 // Returns true if all pieces are in their initial positions
@@ -440,12 +481,9 @@ swapPositions = function(a,b,animate=false)
 			piece = a
 			pivot = b
 		end if 
-		animation = new Animation
-		animation.init piece, pivot.x, pivot.y, tileAnimationDuration
-		while animation.inProgress
-			animation.update
-			yield
-		end while
+		movement = new MovementAnimation
+		movement.init piece, pivot.x, pivot.y, tileAnimationDuration
+		movement.runUntilDone
 	end if
 	
 	previousA = a.pos

@@ -207,6 +207,11 @@ CellSprite.isNeighbourOf = function(other)
 	self.neighbourRight ]
 	return neighbours.contains(other)
 end function
+CellSprite.moveTo = function(targetX, targetY)
+	movement = new MovementAnimation
+	movement.init self,targetX,targetY,tileAnimationDuration
+	movement.runUntilDone
+end function
 
 // Factory function to create cell sprites
 newCellSprite = function(img,col,row)
@@ -480,10 +485,8 @@ swapPositions = function(a,b,animate=false)
 		else 
 			piece = a
 			pivot = b
-		end if 
-		movement = new MovementAnimation
-		movement.init piece,pivot.x,pivot.y,tileAnimationDuration
-		movement.runUntilDone
+		end if
+		piece.moveTo pivot.x,pivot.y
 	end if
 	
 	previousA = a.pos

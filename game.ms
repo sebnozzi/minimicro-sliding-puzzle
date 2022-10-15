@@ -126,10 +126,6 @@ CellSprite.isNeighbourOf = function(other)
 	self.neighbourBelow,
 	self.neighbourLeft,
 	self.neighbourRight ]
-	for n in neighbours 
-		if n == other then return true
-	end for
-	return false
 end function
 
 // Factory function to create cell sprites
@@ -415,7 +411,7 @@ board.makeRandomMove = function
 	else if randomOp == 3 then
 		tileToMove = self.pivot.neighbourLeft
 	end if	
-	swapPositions(tileToMove,self.pivot)
+	swapPositions tileToMove, self.pivot
 end function
 
 board.shufflePieces = function
@@ -463,7 +459,7 @@ board.decreaseSize = function
 end function
 
 board.drawSizeLabel = function
-	UI.drawSizeLabel(self.colCount,self.rowCount)	
+	UI.drawSizeLabel self.colCount, self.rowCount	
 end function
 
 // === Convenience functions ===
@@ -482,7 +478,7 @@ swapPositions = function(a,b,animate=false)
 			pivot = b
 		end if 
 		movement = new MovementAnimation
-		movement.init piece, pivot.x, pivot.y, tileAnimationDuration
+		movement.init piece,pivot.x,pivot.y,tileAnimationDuration
 		movement.runUntilDone
 	end if
 	
@@ -506,7 +502,7 @@ isDown = false
 clear
 
 board.init
-UI.init(board)
+UI.init board
 
 while true
 	tileToMove = null

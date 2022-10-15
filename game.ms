@@ -395,8 +395,6 @@ board.initTiles = function
 	self.pivot = self.cellSprites[len(self.cellSprites)-1]
 end function
 
-
-
 // Returns true if all pieces are in their initial positions
 board.puzzleIsSolved = function
 	for cs in self.cellSprites
@@ -408,6 +406,13 @@ board.puzzleIsSolved = function
 end function
 
 // Shuffle pieces by repeatedly applying a random move
+board.shufflePieces = function
+	for i in range(0,50)
+		self.makeRandomMove
+	end for
+	self.pivot.hide
+end function
+
 board.makeRandomMove = function
 	tileToMove = null
 	randomOp = floor(rnd * 4)
@@ -419,15 +424,22 @@ board.makeRandomMove = function
 		tileToMove = self.pivot.neighbourRight
 	else if randomOp == 3 then
 		tileToMove = self.pivot.neighbourLeft
-	end if	
-	swapPositions tileToMove, self.pivot
+	end if
+	if tileToMove then self.swapPositionsWithPivot tileToMove
 end function
 
-board.shufflePieces = function
-	for i in range(0,50)
-		self.makeRandomMove
-	end for
-	self.pivot.hide
+// Swap positions of piece with pivot
+board.swapPositionsWithPivot = function(piece, animate=false)
+	pivot = self.pivot
+	if animate then
+		piece.moveTo pivot.x, pivot.y
+	end if
+	previousPiecePosition = piece.pos
+	piece.pos = pivot.pos
+	pivot.pos = previousPiecePosition
+	// Update screen coordinates of both
+	piece.updateCoordinates
+	pivot.updateCoordinates
 end function
 
 // Bring tiles to their original positions
@@ -436,13 +448,6 @@ board.resetPositions = function
 		tile.resetPosition
 	end for
 	self.pivot.show
-end function
-
-board.destroySprites = function
-	for cs in self.cellSprites
-		idx = sprd.sprites.indexOf(cs)
-		sprd.sprites.remove idx
-	end for	
 end function
 
 // Re-init the board with an increased size, if possible 
@@ -467,36 +472,15 @@ board.decreaseSize = function
 	end if
 end function
 
-board.drawSizeLabel = function
-	UI.drawSizeLabel self.colCount, self.rowCount	
+board.destroySprites = function
+	for cs in self.cellSprites
+		idx = sprd.sprites.indexOf(cs)
+		sprd.sprites.remove idx
+	end for	
 end function
 
-// === Convenience functions ===
-
-// Swap positions of cell sprites,
-// moving one to the other and vice versa.
-swapPositions = function(a,b,animate=false)
-	if a == null or b == null then return
-	
-	if animate then
-		if a == board.pivot then
-			piece = b
-			pivot = a
-		else 
-			piece = a
-			pivot = b
-		end if
-		piece.moveTo pivot.x,pivot.y
-	end if
-	
-	previousA = a.pos
-	// Set a's position to b's
-	a.pos = b.pos
-	// Set b's to a's
-	b.pos = previousA
-	// Update screen coordinates of both
-	a.updateCoordinates
-	b.updateCoordinates
+board.drawSizeLabel = function
+	UI.drawSizeLabel self.colCount, self.rowCount	
 end function
 
 // === Game logic ===
@@ -557,7 +541,7 @@ while true
 	// If there is a tile to move, swap positions with 
 	// the pivot
 	if tileToMove then
-		swapPositions tileToMove,board.pivot,true 
+		board.swapPositionsWithPivot tileToMove,true 
 	end if
 	
 	// Detect if puzzle is solved

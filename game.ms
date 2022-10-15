@@ -58,6 +58,84 @@ newPosition = function(col,row)
 	return pos
 end function
 
+// === Animation ===
+
+// Changes a value periodically in a given time-frame.
+// Can be used to animate position-changes, color-changes, etc. 
+Animation = {}
+Animation.durationSecs = 1
+Animation.startValue = 0
+Animation.endValue = 0
+Animation.startTime = null
+Animation.endTime = null
+Animation.init = function(startValue, endValue, durationSecs)
+	self.startValue = startValue
+	self.endValue = endValue
+	self.deltaValue = endValue - startValue
+	self.durationSecs = durationSecs
+	self.startTimer
+end function
+Animation.startTimer = function
+	self.startTime = time
+	self.endTime = self.startTime + self.durationSecs
+end function
+Animation.update = function
+	if self.inProgress then
+		elapsedTime = time - self.startTime
+		newValue = self.startValue + self.deltaValue * elapsedTime / self.durationSecs
+		self.onValueChange(newValue)
+	else
+		self.onValueChange(self.endValue)
+	end if
+end function
+Animation.onValueChange = function(newValue)
+	// Override
+end function
+Animation.inProgress = function
+	return time < self.endTime
+end function
+Animation.runUntilDone = function
+	self.startTimer
+	while self.inProgress
+		self.update
+		yield
+	end while
+end function
+
+MovementAnimation = {}
+MovementAnimation.animationX = null
+MovementAnimation.animationY = null
+MovementAnimation.init = function(sprite, endX, endY, durationSecs)
+	self.animationX = new Animation
+	self.animationY = new Animation
+	self.animationX.init(sprite.x, endX, durationSecs)
+	self.animationY.init(sprite.y, endY, durationSecs)
+	self.animationX.onValueChange = function(newX)
+		sprite.x = newX
+	end function
+	self.animationY.onValueChange = function(newY)
+		sprite.y = newY
+	end function
+end function
+MovementAnimation.update = function
+	self.animationX.update
+	self.animationY.update
+end function
+MovementAnimation.startTimer = function
+	self.animationX.startTimer
+	self.animationY.startTimer
+end function
+MovementAnimation.inProgress = function
+	return self.animationX.inProgress or self.animationY.inProgress
+end function
+MovementAnimation.runUntilDone = function
+	self.startTimer
+	while self.inProgress
+		self.update
+		yield
+	end while
+end function
+
 // === CellSprite ===
 
 CellSprite = new Sprite
@@ -312,83 +390,7 @@ board.initTiles = function
 	self.pivot = self.cellSprites[len(self.cellSprites)-1]
 end function
 
-// === Animation ===
 
-// Changes a value periodically in a given time-frame.
-// Can be used to animate position-changes, color-changes, etc. 
-Animation = {}
-Animation.durationSecs = 1
-Animation.startValue = 0
-Animation.endValue = 0
-Animation.startTime = null
-Animation.endTime = null
-Animation.init = function(startValue, endValue, durationSecs)
-	self.startValue = startValue
-	self.endValue = endValue
-	self.deltaValue = endValue - startValue
-	self.durationSecs = durationSecs
-	self.startTimer
-end function
-Animation.startTimer = function
-	self.startTime = time
-	self.endTime = self.startTime + self.durationSecs
-end function
-Animation.update = function
-	if self.inProgress then
-		elapsedTime = time - self.startTime
-		newValue = self.startValue + self.deltaValue * elapsedTime / self.durationSecs
-		self.onValueChange(newValue)
-	else
-		self.onValueChange(self.endValue)
-	end if
-end function
-Animation.onValueChange = function(newValue)
-	// Override
-end function
-Animation.inProgress = function
-	return time < self.endTime
-end function
-Animation.runUntilDone = function
-	self.startTimer
-	while self.inProgress
-		self.update
-		yield
-	end while
-end function
-
-MovementAnimation = {}
-MovementAnimation.animationX = null
-MovementAnimation.animationY = null
-MovementAnimation.init = function(sprite, endX, endY, durationSecs)
-	self.animationX = new Animation
-	self.animationY = new Animation
-	self.animationX.init(sprite.x, endX, durationSecs)
-	self.animationY.init(sprite.y, endY, durationSecs)
-	self.animationX.onValueChange = function(newX)
-		sprite.x = newX
-	end function
-	self.animationY.onValueChange = function(newY)
-		sprite.y = newY
-	end function
-end function
-MovementAnimation.update = function
-	self.animationX.update
-	self.animationY.update
-end function
-MovementAnimation.startTimer = function
-	self.animationX.startTimer
-	self.animationY.startTimer
-end function
-MovementAnimation.inProgress = function
-	return self.animationX.inProgress or self.animationY.inProgress
-end function
-MovementAnimation.runUntilDone = function
-	self.startTimer
-	while self.inProgress
-		self.update
-		yield
-	end while
-end function
 
 // Returns true if all pieces are in their initial positions
 board.puzzleIsSolved = function

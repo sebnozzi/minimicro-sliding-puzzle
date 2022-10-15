@@ -1,3 +1,4 @@
+import "listUtil"
 
 // Define some global properties
 sprd = display(4)
@@ -126,6 +127,7 @@ CellSprite.isNeighbourOf = function(other)
 	self.neighbourBelow,
 	self.neighbourLeft,
 	self.neighbourRight ]
+	return neighbours.contains(other)
 end function
 
 // Factory function to create cell sprites

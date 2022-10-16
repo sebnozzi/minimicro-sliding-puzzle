@@ -1,0 +1,2 @@
+load "game.ms"
+run

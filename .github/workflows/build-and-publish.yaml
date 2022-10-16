@@ -1,0 +1,44 @@
+name: Build and publish
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  WEBGL_TEMPLATE_URL: https://miniscript.org/files/minimicro-webgl.zip
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+        
+      - name: Zip user.minidisk
+        run: zip -r user.minidisk ./startup.ms ./game.ms ./game-images
+
+      # TODO: MacOS build
+      # TODO: Windows build
+      # TODO: Linux build
+
+      # === WebGL build ===
+
+      - name: Download WebGL template
+        run: wget --no-verbose -O minimicro-webgl.zip "$WEBGL_TEMPLATE_URL"
+      - name: Unzip WebGL template
+        run: unzip minimicro-webgl.zip
+      - name: Move user.minidisk
+        run: mv user.minidisk ./MiniMicro/StreamingAssets/
+      - name: Package WebGL template
+        run: zip -r sliding-puzzle.zip ./MiniMicro/index.html ./MiniMicro/Build ./MiniMicro/StreamingAssets
+      - name: Publish WebGL template to itch.io
+        uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
+          gameData: sliding-puzzle.zip
+          itchUsername: sebnozzi
+          itchGameId: sliding-puzzle
+          buildChannel: browser

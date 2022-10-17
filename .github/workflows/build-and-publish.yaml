@@ -10,6 +10,7 @@ env:
   WEBGL_TEMPLATE_URL: https://miniscript.org/files/minimicro-webgl.zip
   WINDOWS_TEMPLATE_URL: https://miniscript.org/files/minimicro-win.zip
   MAC_TEMPLATE_URL: https://miniscript.org/files/minimicro-mac.zip
+  LINUX_TEMPLATE_URL: https://miniscript.org/files/minimicro-linux.tar.gz
 
 jobs:
   build:
@@ -21,13 +22,6 @@ jobs:
         
       - name: Zip user.minidisk
         run: zip -r user.minidisk ./startup.ms ./game.ms ./game-images
-
-      # TODO: MacOS build
-      # https://miniscript.org/files/minimicro-mac.zip
-      # TODO: Windows build
-      # https://miniscript.org/files/minimicro-win.zip
-      # TODO: Linux build
-      # https://miniscript.org/files/minimicro-linux.tar.gz
 
       # === WebGL build ===
 
@@ -80,5 +74,19 @@ jobs:
           itchGameId: sliding-puzzle
           buildChannel: mac
 
-        # TODO: Linux build
-        # https://miniscript.org/files/minimicro-linux.tar.gz
+      # === Linux build ===
+
+      - name: Download Linux template
+        run: wget --no-verbose -O minimicro-linux.tar.gz "$LINUX_TEMPLATE_URL"
+      - name: Unpack Linux template
+        run: tar -xvf minimicro-linux.tar.gz -C ./minimicro-linux
+      - name: Copy user.minidisk
+        run: cp user.minidisk ./minimicro-linux
+      - name: Publish Mac template to itch.io
+        uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
+          gameData: ./minimicro-linux
+          itchUsername: sebnozzi
+          itchGameId: sliding-puzzle
+          buildChannel: linux

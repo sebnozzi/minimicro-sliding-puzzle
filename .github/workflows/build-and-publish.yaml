@@ -52,7 +52,7 @@ jobs:
         run: wget --no-verbose -O minimicro-win.zip "$WINDOWS_TEMPLATE_URL"
       - name: Unzip Windows template
         run: unzip minimicro-win.zip -d minimicro-win
-      - name: Move user.minidisk
+      - name: Copy user.minidisk
         run: cp user.minidisk ./minimicro-win/MiniMicro
       - name: Publish Windows template to itch.io
         uses: KikimoraGames/itch-publish@v0.0.3

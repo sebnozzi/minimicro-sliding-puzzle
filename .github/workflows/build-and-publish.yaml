@@ -18,4 +18,4 @@ jobs:
       itch_io_username: sebnozzi
       itch_io_game_id: sliding-puzzle
     secrets:
-      itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
+      itch_io_api_key: ${{ secrets.ITCH_IO_API_KEY }}

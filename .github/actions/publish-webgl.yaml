@@ -1,4 +1,5 @@
-name: Package and publish WebGL
+name: publish-webgl
+description: "Package and publish a WebGL version"
 
 inputs:
   itchio_api_key: 

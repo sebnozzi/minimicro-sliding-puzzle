@@ -1,4 +1,4 @@
-name: Build user.minidisk
+name: build-minidisk
 description: "Builds user.minidisk asset"
 
 inputs:

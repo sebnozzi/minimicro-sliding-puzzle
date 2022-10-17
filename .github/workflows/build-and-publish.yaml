@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/build-minidisk.yaml
+      - uses: ./.github/actions/build-minidisk
         with:
           entries: $MINIDISK_ENTRIES
 
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest    
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/publish-webgl.yaml
+      - uses: ./.github/actions/publish-webgl
         with:
           itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
           itchio_username: $ITCH_IO_USERNAME

@@ -16,7 +16,6 @@ env:
 
     # TODO: cache template assets
     # TODO: convert in re-usable action
-    # TODO: extract steps?
 
       #- name: Get hashes
       #  run:
@@ -26,8 +25,6 @@ env:
 
 jobs:
 
-  # === Build user.minidisk ===
-
   build-minidisk:
     runs-on: ubuntu-latest
     steps:
@@ -36,9 +33,7 @@ jobs:
         with:
           entries: ${{ env.minidisk_entries }}
 
-  # === WebGL build ===
-
-  build-webgl:
+  build-and-publish-webgl:
     needs: build-minidisk
     runs-on: ubuntu-latest    
     steps:
@@ -49,76 +44,35 @@ jobs:
           itchio_username: ${{ env.itch_io_username }}
           itchio_game_id: ${{ env.itch_io_game_id }}
 
-  # === Windows build ===
-
-  build-windows:
+  build-and-publish-windows:
     needs: build-minidisk
     runs-on: ubuntu-latest    
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/publish-windows
         with:
-          name: user-minidisk
-      - name: Download Windows template
-        run: wget --no-verbose -O minimicro-win.zip https://miniscript.org/files/minimicro-win.zip
-      - name: Unzip Windows template
-        run: unzip minimicro-win.zip -d minimicro-win
-      - name: Move user.minidisk
-        run: mv user.minidisk ./minimicro-win/MiniMicro
-      - name: Publish Windows template to itch.io
-        uses: KikimoraGames/itch-publish@v0.0.3
-        with:
-          butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
-          gameData: ./minimicro-win/MiniMicro
-          itchUsername: sebnozzi
-          itchGameId: sliding-puzzle
-          buildChannel: windows
+          itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
+          itchio_username: ${{ env.itch_io_username }}
+          itchio_game_id: ${{ env.itch_io_game_id }}
 
-  # === Mac build ===
-
-  build-mac:
+  build-and-publish-mac:
     needs: build-minidisk
     runs-on: ubuntu-latest    
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/publish-mac
         with:
-          name: user-minidisk
-      - name: Download Mac template
-        run: wget --no-verbose -O minimicro-mac.zip https://miniscript.org/files/minimicro-mac.zip
-      - name: Unzip Mac template
-        run: unzip minimicro-mac.zip -d minimicro-mac
-      - name: Copy user.minidisk
-        run: cp user.minidisk ./minimicro-mac
-      - name: Publish Mac template to itch.io
-        uses: KikimoraGames/itch-publish@v0.0.3
-        with:
-          butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
-          gameData: ./minimicro-mac
-          itchUsername: sebnozzi
-          itchGameId: sliding-puzzle
-          buildChannel: mac
+          itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
+          itchio_username: ${{ env.itch_io_username }}
+          itchio_game_id: ${{ env.itch_io_game_id }}
 
-  # === Linux build ===
-
-  build-linux:
+  build-and-publish-linux:
     needs: build-minidisk
     runs-on: ubuntu-latest    
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/publish-linux
         with:
-          name: user-minidisk
-      - name: Download Linux template
-        run: wget --no-verbose -O minimicro-linux.tar.gz https://miniscript.org/files/minimicro-linux.tar.gz
-      - name: Unpack Linux template
-        run: |
-          mkdir -p ./minimicro-linux
-          tar -xvf minimicro-linux.tar.gz -C ./minimicro-linux
-      - name: Copy user.minidisk
-        run: cp user.minidisk ./minimicro-linux
-      - name: Publish Linux template to itch.io
-        uses: KikimoraGames/itch-publish@v0.0.3
-        with:
-          butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
-          gameData: ./minimicro-linux
-          itchUsername: sebnozzi
-          itchGameId: sliding-puzzle
-          buildChannel: linux
+          itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
+          itchio_username: ${{ env.itch_io_username }}
+          itchio_game_id: ${{ env.itch_io_game_id }}

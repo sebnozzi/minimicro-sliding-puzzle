@@ -8,6 +8,7 @@ on:
 
 env:
   WEBGL_TEMPLATE_URL: https://miniscript.org/files/minimicro-webgl.zip
+  WINDOWS_TEMPLATE_URL: https://miniscript.org/files/minimicro-win.zip
 
 jobs:
   build:
@@ -21,24 +22,42 @@ jobs:
         run: zip -r user.minidisk ./startup.ms ./game.ms ./game-images
 
       # TODO: MacOS build
+      # https://miniscript.org/files/minimicro-mac.zip
       # TODO: Windows build
+      # https://miniscript.org/files/minimicro-win.zip
       # TODO: Linux build
+      # https://miniscript.org/files/minimicro-linux.tar.gz
 
       # === WebGL build ===
 
       - name: Download WebGL template
         run: wget --no-verbose -O minimicro-webgl.zip "$WEBGL_TEMPLATE_URL"
       - name: Unzip WebGL template
-        run: unzip minimicro-webgl.zip
+        run: unzip minimicro-webgl.zip -d minimicro-web
       - name: Move user.minidisk
-        run: mv user.minidisk ./MiniMicro/StreamingAssets/
-      - name: Package WebGL template
-        run: zip -r sliding-puzzle.zip ./MiniMicro/index.html ./MiniMicro/Build ./MiniMicro/StreamingAssets
+        run: mv user.minidisk ./minimicro-web/MiniMicro/StreamingAssets/
       - name: Publish WebGL template to itch.io
         uses: KikimoraGames/itch-publish@v0.0.3
         with:
           butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
-          gameData: sliding-puzzle.zip
+          gameData: ./minimicro-web/MiniMicro
           itchUsername: sebnozzi
           itchGameId: sliding-puzzle
           buildChannel: browser
+
+      # === Windows build ===
+
+      - name: Download Windows template
+        run: wget --no-verbose -O minimicro-win.zip "$WINDOWS_TEMPLATE_URL"
+      - name: Unzip Windows template
+        run: unzip minimicro-win.zip -d minimicro-win
+      - name: Move user.minidisk
+        run: mv user.minidisk ./minimicro-win/MiniMicro
+      - name: Publish Windows template to itch.io
+        uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
+          gameData: ./minimicro-win/MiniMicro
+          itchUsername: sebnozzi
+          itchGameId: sliding-puzzle
+          buildChannel: windows

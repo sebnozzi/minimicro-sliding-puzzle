@@ -66,7 +66,7 @@ jobs:
       # === Mac build ===
 
       - name: Download Mac template
-        run: wget --no-verbose -O minimicro-win.zip "$MAC_TEMPLATE_URL"
+        run: wget --no-verbose -O minimicro-mac.zip "$MAC_TEMPLATE_URL"
       - name: Unzip Mac template
         run: unzip minimicro-mac.zip -d minimicro-mac
       - name: Copy user.minidisk

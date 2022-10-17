@@ -14,65 +14,13 @@ env:
   itch_io_username: sebnozzi
   itch_io_game_id: sliding-puzzle
 
-    # TODO: cache template assets
-    # TODO: convert in re-usable action
-
-      #- name: Get hashes
-      #  run:
-      #    WINDOWS_HASH=$(curl --silent --head $WINDOWS_TEMPLATE_URL | grep "ETag" | awk '{gsub(/"/, "", $2); print $2}')
-      #    MAC_HASH=$(curl --silent --head $MAC_TEMPLATE_URL | grep "ETag" | awk '{gsub(/"/, "", $2); print $2}')
-      #    LINUX_HASH=$(curl --silent --head $LINUX_TEMPLATE_URL | grep "ETag" | awk '{gsub(/"/, "", $2); print $2}')
-
 jobs:
 
-  build-minidisk:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/build-minidisk
-        with:
-          entries: ${{ env.minidisk_entries }}
-
-  build-and-publish-webgl:
-    needs: build-minidisk
-    runs-on: ubuntu-latest    
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/publish-webgl
-        with:
-          itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
-          itchio_username: ${{ env.itch_io_username }}
-          itchio_game_id: ${{ env.itch_io_game_id }}
-
-  build-and-publish-windows:
-    needs: build-minidisk
-    runs-on: ubuntu-latest    
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/publish-windows
-        with:
-          itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
-          itchio_username: ${{ env.itch_io_username }}
-          itchio_game_id: ${{ env.itch_io_game_id }}
-
-  build-and-publish-mac:
-    needs: build-minidisk
-    runs-on: ubuntu-latest    
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/publish-mac
-        with:
-          itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
-          itchio_username: ${{ env.itch_io_username }}
-          itchio_game_id: ${{ env.itch_io_game_id }}
-
-  build-and-publish-linux:
-    needs: build-minidisk
-    runs-on: ubuntu-latest    
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/publish-linux
-        with:
-          itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
-          itchio_username: ${{ env.itch_io_username }}
-          itchio_game_id: ${{ env.itch_io_game_id }}
+  build-and-publish-to-itch-io:
+    uses: sebnozzi/minimicro-game-deploy/.github/workflows/build-and-publish.yml@main
+    with:
+      minidisk_entries: ${{ env.minidisk_entries }}
+      itch_io_username: ${{ env.itch_io_username }}
+      itch_io_game_id: ${{ env.itch_io_game_id }}
+    secrets:
+      itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}

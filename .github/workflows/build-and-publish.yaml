@@ -9,11 +9,12 @@ on:
 env:
   WEBGL_TEMPLATE_URL: https://miniscript.org/files/minimicro-webgl.zip
   WINDOWS_TEMPLATE_URL: https://miniscript.org/files/minimicro-win.zip
+  MAC_TEMPLATE_URL: https://miniscript.org/files/minimicro-mac.zip
+  LINUX_TEMPLATE_URL: https://miniscript.org/files/minimicro-linux.tar.gz
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
@@ -21,20 +22,13 @@ jobs:
       - name: Zip user.minidisk
         run: zip -r user.minidisk ./startup.ms ./game.ms ./game-images
 
-      # TODO: MacOS build
-      # https://miniscript.org/files/minimicro-mac.zip
-      # TODO: Windows build
-      # https://miniscript.org/files/minimicro-win.zip
-      # TODO: Linux build
-      # https://miniscript.org/files/minimicro-linux.tar.gz
-
       # === WebGL build ===
 
       - name: Download WebGL template
         run: wget --no-verbose -O minimicro-webgl.zip "$WEBGL_TEMPLATE_URL"
       - name: Unzip WebGL template
         run: unzip minimicro-webgl.zip -d minimicro-web
-      - name: Move user.minidisk
+      - name: Copy user.minidisk
         run: cp user.minidisk ./minimicro-web/MiniMicro/StreamingAssets/
       - name: Publish WebGL template to itch.io
         uses: KikimoraGames/itch-publish@v0.0.3
@@ -51,7 +45,7 @@ jobs:
         run: wget --no-verbose -O minimicro-win.zip "$WINDOWS_TEMPLATE_URL"
       - name: Unzip Windows template
         run: unzip minimicro-win.zip -d minimicro-win
-      - name: Move user.minidisk
+      - name: Copy user.minidisk
         run: cp user.minidisk ./minimicro-win/MiniMicro
       - name: Publish Windows template to itch.io
         uses: KikimoraGames/itch-publish@v0.0.3
@@ -61,3 +55,23 @@ jobs:
           itchUsername: sebnozzi
           itchGameId: sliding-puzzle
           buildChannel: windows
+
+    # === Mac build ===
+
+    - name: Download Mac template
+      run: wget --no-verbose -O minimicro-win.zip "$MAC_TEMPLATE_URL"
+    - name: Unzip Mac template
+      run: unzip minimicro-mac.zip -d minimicro-mac
+    - name: Copy user.minidisk
+      run: cp user.minidisk ./minimicro-mac
+    - name: Publish Mac template to itch.io
+      uses: KikimoraGames/itch-publish@v0.0.3
+      with:
+        butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
+        gameData: ./minimicro-mac
+        itchUsername: sebnozzi
+        itchGameId: sliding-puzzle
+        buildChannel: mac
+
+      # TODO: Linux build
+      # https://miniscript.org/files/minimicro-linux.tar.gz

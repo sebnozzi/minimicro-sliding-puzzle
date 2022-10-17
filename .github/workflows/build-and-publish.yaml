@@ -13,7 +13,7 @@ env:
   LINUX_TEMPLATE_URL: https://miniscript.org/files/minimicro-linux.tar.gz
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout project

@@ -7,34 +7,54 @@ on:
   workflow_dispatch:
 
 env:
+  MINIDISK_ENTRIES: ./startup.ms ./game.ms ./game-images
+  
   WEBGL_TEMPLATE_URL: https://miniscript.org/files/minimicro-webgl.zip
   WINDOWS_TEMPLATE_URL: https://miniscript.org/files/minimicro-win.zip
   MAC_TEMPLATE_URL: https://miniscript.org/files/minimicro-mac.zip
   LINUX_TEMPLATE_URL: https://miniscript.org/files/minimicro-linux.tar.gz
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
     # TODO: cache template assets
     # TODO: convert in re-usable action
     # TODO: extract steps?
-    
+
+      #- name: Get hashes
+      #  run:
+      #    WINDOWS_HASH=$(curl --silent --head $WINDOWS_TEMPLATE_URL | grep "ETag" | awk '{gsub(/"/, "", $2); print $2}')
+      #    MAC_HASH=$(curl --silent --head $MAC_TEMPLATE_URL | grep "ETag" | awk '{gsub(/"/, "", $2); print $2}')
+      #    LINUX_HASH=$(curl --silent --head $LINUX_TEMPLATE_URL | grep "ETag" | awk '{gsub(/"/, "", $2); print $2}')
+
+jobs:
+
+  # === Build user.minidisk ===
+
+  build-minidisk:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
-        
       - name: Zip user.minidisk
-        run: zip -r user.minidisk ./startup.ms ./game.ms ./game-images
+        run: zip -r user.minidisk $MINIDISK_ENTRIES
+      - uses: actions/upload-artifact@v3
+        with:
+          name: user-minidisk
+          path: ./user.minidisk
 
-      # === WebGL build ===
+  # === WebGL build ===
 
+  build-webgl:
+    needs: build-minidisk
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: user-minidisk
       - name: Download WebGL template
         run: wget --no-verbose -O minimicro-webgl.zip "$WEBGL_TEMPLATE_URL"
       - name: Unzip WebGL template
         run: unzip minimicro-webgl.zip -d minimicro-web
       - name: Move user.minidisk
-        run: cp user.minidisk ./minimicro-web/MiniMicro/StreamingAssets/
+        run: mv user.minidisk ./minimicro-web/MiniMicro/StreamingAssets/
       - name: Publish WebGL template to itch.io
         uses: KikimoraGames/itch-publish@v0.0.3
         with:
@@ -44,14 +64,21 @@ jobs:
           itchGameId: sliding-puzzle
           buildChannel: browser
 
-      # === Windows build ===
+  # === Windows build ===
 
+  build-windows:
+    needs: build-minidisk
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: user-minidisk
       - name: Download Windows template
         run: wget --no-verbose -O minimicro-win.zip "$WINDOWS_TEMPLATE_URL"
       - name: Unzip Windows template
         run: unzip minimicro-win.zip -d minimicro-win
-      - name: Copy user.minidisk
-        run: cp user.minidisk ./minimicro-win/MiniMicro
+      - name: Move user.minidisk
+        run: mv user.minidisk ./minimicro-win/MiniMicro
       - name: Publish Windows template to itch.io
         uses: KikimoraGames/itch-publish@v0.0.3
         with:
@@ -61,8 +88,15 @@ jobs:
           itchGameId: sliding-puzzle
           buildChannel: windows
 
-      # === Mac build ===
+  # === Mac build ===
 
+  build-mac:
+    needs: build-minidisk
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: user-minidisk
       - name: Download Mac template
         run: wget --no-verbose -O minimicro-mac.zip "$MAC_TEMPLATE_URL"
       - name: Unzip Mac template
@@ -78,8 +112,15 @@ jobs:
           itchGameId: sliding-puzzle
           buildChannel: mac
 
-      # === Linux build ===
+  # === Linux build ===
 
+  build-linux:
+    needs: build-minidisk
+    runs-on: ubuntu-latest    
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: user-minidisk
       - name: Download Linux template
         run: wget --no-verbose -O minimicro-linux.tar.gz "$LINUX_TEMPLATE_URL"
       - name: Unpack Linux template

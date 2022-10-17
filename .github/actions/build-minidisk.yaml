@@ -1,0 +1,20 @@
+name: Build user.minidisk
+description: "Builds user.minidisk asset"
+
+inputs:
+  entries:
+    description: "Files or folders to be recursively included in the minidisk"
+    required: true
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Checkout project
+      uses: actions/checkout@v3
+    - name: Zip user.minidisk
+      run: zip -r user.minidisk ${{ inputs.entries }}
+    - uses: actions/upload-artifact@v3
+      with:
+        name: user-minidisk
+        path: ./user.minidisk

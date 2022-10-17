@@ -7,12 +7,12 @@ on:
   workflow_dispatch:
 
 env:
-  MINIDISK_ENTRIES: ./startup.ms ./game.ms ./game-images
-  
-  WEBGL_TEMPLATE_URL: https://miniscript.org/files/minimicro-webgl.zip
-  WINDOWS_TEMPLATE_URL: https://miniscript.org/files/minimicro-win.zip
-  MAC_TEMPLATE_URL: https://miniscript.org/files/minimicro-mac.zip
-  LINUX_TEMPLATE_URL: https://miniscript.org/files/minimicro-linux.tar.gz
+  MINIDISK_ENTRIES: >-
+    ./startup.ms
+    ./game.ms
+    ./game-images
+  ITCH_IO_USERNAME: sebnozzi
+  ITCH_IO_GAME_ID: sliding-puzzle
 
     # TODO: cache template assets
     # TODO: convert in re-usable action
@@ -31,14 +31,9 @@ jobs:
   build-minidisk:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout project
-        uses: actions/checkout@v3
-      - name: Zip user.minidisk
-        run: zip -r user.minidisk $MINIDISK_ENTRIES
-      - uses: actions/upload-artifact@v3
+      - uses: ./.github/actions/build-minidisk.yaml
         with:
-          name: user-minidisk
-          path: ./user.minidisk
+          entries: $MINIDISK_ENTRIES
 
   # === WebGL build ===
 
@@ -46,23 +41,11 @@ jobs:
     needs: build-minidisk
     runs-on: ubuntu-latest    
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: ./.github/actions/publish-webgl.yaml
         with:
-          name: user-minidisk
-      - name: Download WebGL template
-        run: wget --no-verbose -O minimicro-webgl.zip "$WEBGL_TEMPLATE_URL"
-      - name: Unzip WebGL template
-        run: unzip minimicro-webgl.zip -d minimicro-web
-      - name: Move user.minidisk
-        run: mv user.minidisk ./minimicro-web/MiniMicro/StreamingAssets/
-      - name: Publish WebGL template to itch.io
-        uses: KikimoraGames/itch-publish@v0.0.3
-        with:
-          butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}
-          gameData: ./minimicro-web/MiniMicro
-          itchUsername: sebnozzi
-          itchGameId: sliding-puzzle
-          buildChannel: browser
+          itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
+          itchio_username: $ITCH_IO_USERNAME
+          itchio_game_id: $ITCH_IO_GAME_ID
 
   # === Windows build ===
 
@@ -74,7 +57,7 @@ jobs:
         with:
           name: user-minidisk
       - name: Download Windows template
-        run: wget --no-verbose -O minimicro-win.zip "$WINDOWS_TEMPLATE_URL"
+        run: wget --no-verbose -O minimicro-win.zip https://miniscript.org/files/minimicro-win.zip
       - name: Unzip Windows template
         run: unzip minimicro-win.zip -d minimicro-win
       - name: Move user.minidisk
@@ -98,7 +81,7 @@ jobs:
         with:
           name: user-minidisk
       - name: Download Mac template
-        run: wget --no-verbose -O minimicro-mac.zip "$MAC_TEMPLATE_URL"
+        run: wget --no-verbose -O minimicro-mac.zip https://miniscript.org/files/minimicro-mac.zip
       - name: Unzip Mac template
         run: unzip minimicro-mac.zip -d minimicro-mac
       - name: Copy user.minidisk
@@ -122,7 +105,7 @@ jobs:
         with:
           name: user-minidisk
       - name: Download Linux template
-        run: wget --no-verbose -O minimicro-linux.tar.gz "$LINUX_TEMPLATE_URL"
+        run: wget --no-verbose -O minimicro-linux.tar.gz https://miniscript.org/files/minimicro-linux.tar.gz
       - name: Unpack Linux template
         run: |
           mkdir -p ./minimicro-linux

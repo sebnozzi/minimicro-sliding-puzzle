@@ -17,7 +17,7 @@ env:
 jobs:
 
   build-and-publish-to-itch-io:
-    uses: sebnozzi/minimicro-game-deploy/.github/workflows/build-and-publish.yml@main
+    uses: sebnozzi/minimicro-game-deploy/.github/workflows/build-and-publish.yaml@main
     with:
       minidisk_entries: ${{ env.minidisk_entries }}
       itch_io_username: ${{ env.itch_io_username }}

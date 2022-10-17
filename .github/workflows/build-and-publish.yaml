@@ -88,7 +88,7 @@ jobs:
           tar -xvf minimicro-linux.tar.gz -C ./minimicro-linux
       - name: Copy user.minidisk
         run: cp user.minidisk ./minimicro-linux
-      - name: Publish Mac template to itch.io
+      - name: Publish Linux template to itch.io
         uses: KikimoraGames/itch-publish@v0.0.3
         with:
           butlerApiKey: ${{secrets.ITCH_IO_API_KEY}}

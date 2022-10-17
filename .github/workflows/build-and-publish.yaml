@@ -15,6 +15,10 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # TODO: cache template assets
+    # TODO: convert in re-usable action
+    # TODO: extract steps?
     
     steps:
       - name: Checkout project
@@ -79,7 +83,9 @@ jobs:
       - name: Download Linux template
         run: wget --no-verbose -O minimicro-linux.tar.gz "$LINUX_TEMPLATE_URL"
       - name: Unpack Linux template
-        run: tar -xvf minimicro-linux.tar.gz -C ./minimicro-linux
+        run: |
+          mkdir -p ./minimicro-linux
+          tar -xvf minimicro-linux.tar.gz -C ./minimicro-linux
       - name: Copy user.minidisk
         run: cp user.minidisk ./minimicro-linux
       - name: Publish Mac template to itch.io

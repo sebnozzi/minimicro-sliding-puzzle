@@ -31,6 +31,7 @@ jobs:
   build-minidisk:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/build-minidisk.yaml
         with:
           entries: $MINIDISK_ENTRIES
@@ -41,6 +42,7 @@ jobs:
     needs: build-minidisk
     runs-on: ubuntu-latest    
     steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/publish-webgl.yaml
         with:
           itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}

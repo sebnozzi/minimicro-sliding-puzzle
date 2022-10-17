@@ -7,12 +7,12 @@ on:
   workflow_dispatch:
 
 env:
-  MINIDISK_ENTRIES: >-
+  minidisk_entries: >-
     ./startup.ms
     ./game.ms
     ./game-images
-  ITCH_IO_USERNAME: sebnozzi
-  ITCH_IO_GAME_ID: sliding-puzzle
+  itch_io_username: sebnozzi
+  itch_io_game_id: sliding-puzzle
 
     # TODO: cache template assets
     # TODO: convert in re-usable action
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/build-minidisk
         with:
-          entries: $MINIDISK_ENTRIES
+          entries: ${{ env.minidisk_entries }}
 
   # === WebGL build ===
 
@@ -46,8 +46,8 @@ jobs:
       - uses: ./.github/actions/publish-webgl
         with:
           itchio_api_key: ${{ secrets.ITCH_IO_API_KEY }}
-          itchio_username: $ITCH_IO_USERNAME
-          itchio_game_id: $ITCH_IO_GAME_ID
+          itchio_username: ${{ env.itch_io_username }}
+          itchio_game_id: ${{ env.itch_io_game_id }}
 
   # === Windows build ===
 

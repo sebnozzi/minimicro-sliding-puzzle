@@ -11,10 +11,8 @@ jobs:
   build-and-publish-to-itch-io:
     uses: sebnozzi/minimicro-actions/.github/workflows/itch-deploy.yaml@main
     with:
-      minidisk_entries: >-
-        ./startup.ms
-        ./game.ms
-        ./game-images
+      minidisk_main_file: game.ms
+      minidisk_additional_entries: game-images
       itch_io_username: sebnozzi
       itch_io_game_id: sliding-puzzle
     secrets:

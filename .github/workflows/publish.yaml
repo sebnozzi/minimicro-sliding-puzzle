@@ -14,6 +14,7 @@ jobs:
       minidisk_main_file: game.ms
       minidisk_additional_entries: game-images
       boot_opts_path: bootOpts.grfon
+      custom_executable_name: Sliding Puzzle
       itch_io_username: sebnozzi
       itch_io_game_id: sliding-puzzle
     secrets:

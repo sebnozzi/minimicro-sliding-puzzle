@@ -407,9 +407,12 @@ end function
 
 // Shuffle pieces by repeatedly applying a random move
 board.shufflePieces = function
-	for i in range(0,50)
-		self.makeRandomMove
-	end for
+	while true
+		for i in range(0,50)
+			self.makeRandomMove
+		end for
+		if not board.puzzleIsSolved then break
+	end while
 	self.pivot.hide
 end function
 
